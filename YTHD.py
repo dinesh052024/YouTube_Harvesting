@@ -15,6 +15,7 @@ API_key="AIzaSyCh0EKbFBtRzkwvfLks-h_b0AWbti-BzwM"
 #channel_id="UCRTmSft-1I9f0yzTnz32oMg"
 #YouTube_Harves("UCRTmSft-1I9f0yzTnz32oMg")
 
+
 #DB connection
 mydb = mysql.connector.connect(
   host="localhost",
@@ -131,15 +132,37 @@ def YouTube_Harves(channel_id):
              mydb.rollback()
 #code for Frount End using streamlit
 st.set_page_config(layout="wide")
+#new_title = '<p style="font-family:sans-serif; color:Green; font-size: 42px;">YouTube Harvesting</p>'
+#st.markdown(new_title, unsafe_allow_html=True)
+#st.image("DH.PNG", channels="BGR")
+st.image("DH.PNG")
 st.title("YouTube Harvesting")
 channel_id=[]
+st.header('Available Channel List')
+chnl_list_sql="SELECT CHNL_NAME FROM DINESH.CHANNEL_DETAILS"    
+mycursor.execute(chnl_list_sql)
+chnl_list = mycursor.fetchall()
+for cl in chnl_list:
+ st.write(cl[0]) 
 chanel_id = st.text_input("Please Enter YouTube Channel ID")
-channel_id=list(chanel_id.split(','))
 button_res=st.button("Harvest")
+
+channel_id=list(chanel_id.split(','))
+
 if button_res:
+ chnl_chk_sql="SELECT CASE WHEN COUNT(*) > 0 THEN 'Y' ELSE 'N' END AS CHNL_CNT FROM DINESH.CHANNEL_DETAILS WHERE CHNL_ID =%s"    
+ #mycursor.execute(chnl_chk_sql,channel_id[0][0])
+ #chnl_chk_id = mycursor.fetchall()
+ #st.write(chnl_chk_id) 
  #for loop for comma seperated channel id's
  for l in channel_id:
-   YouTube_Harves(l)
+    mycursor.execute(chnl_chk_sql,[l])
+    chnl_chk_id = mycursor.fetchall()
+    chnl_prst = chnl_chk_id[0][0]
+    if chnl_prst == "Y":
+      st.error('This Channel is already available', icon=None)
+    YouTube_Harves(l)
+    #st.write(l)
 #list of questions to be displayed in drop down list   
 questions={"Q1":"What are the names of all the videos and their corresponding channels?",
 "Q2":"Which channels have the most number of videos, and how many videos do they have?",
@@ -151,7 +174,7 @@ questions={"Q1":"What are the names of all the videos and their corresponding ch
 "Q8":"What are the names of all the channels that have published videos in the year 2022?",
 "Q9":"What is the average duration of all videos in each channel, and what are their corresponding channel names?",
 "Q10":"Which videos have the highest number of comments, and what are their corresponding channel names?"}  
-dropdown = st.selectbox("Select the column", options=list(questions.values())) 
+dropdown = st.selectbox("Select the Question", options=list(questions.values())) 
 #based on options selected in dropdown sql query will run and answer wil be displayed
 #for m in questions:
 if dropdown== "What are the names of all the videos and their corresponding channels?":
@@ -197,7 +220,7 @@ if dropdown== "What is the total number of views for each channel, and what are 
    for q7 in q7_ans:
     st.write(q7)
 if dropdown== "What are the names of all the channels that have published videos in the year 2022?":
-   q8_sql ="SELECT distinct c.CHNL_NAME as 'Channel Name' FROM DINESH.channel_details C JOIN DINESH.VIDEO_DETAILS V ON C.ID = V.CHN_ID where year(v.VID_PUB) = '2024'"    
+   q8_sql ="SELECT distinct c.CHNL_NAME as 'Channel Name' FROM DINESH.channel_details C JOIN DINESH.VIDEO_DETAILS V ON C.ID = V.CHN_ID where year(v.VID_PUB) = '2022'"    
    mycursor.execute(q8_sql)
    q8_ans = mycursor.fetchall()
    for q8 in q8_ans:
